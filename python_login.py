@@ -12,6 +12,57 @@
 #       Add something that can be done after logging in
 
 import os
+from cryptography.fernet import Fernet
+
+# Encryption code:
+
+def load_key():
+    os.chdir(r"C:\Users\nkata\Documents\projects\python_login")
+    """
+    Loads the key named `secret.key` from the current directory.
+    """
+    return open("secret.key", "rb").read()
+
+def encrypt_message(message):
+
+    key = load_key()
+    encoded_message = message.encode()
+    fernet = Fernet(key)
+    encrypted_message = fernet.encrypt(encoded_message)
+
+    return encrypted_message
+
+def decrypt_message(encrypted_message):
+
+    key = load_key()
+    fernet = Fernet(key)
+    decrypted_message = fernet.decrypt(encrypted_message)
+
+    return decrypted_message
+
+# File Handling code
+
+def readFromFile(filename):
+    # returns an array of lines from the code
+    
+    os.chdir(r"C:\Users\nkata\Documents\projects\python_login")
+    array = []
+
+    f = open(filename, "r")
+    for x in f:
+        x = x.strip()
+        array.append(x)
+
+    f.close()
+
+    return array
+
+def writeToFile(filename, content):
+    os.chdir(r"C:\Users\nkata\Documents\projects\python_login")
+    f = open(filename, "a")
+    f.write(str(content))
+    f.write("\n")
+    f.close()
 
 def clearConsole():
     command = 'clear'
@@ -28,24 +79,24 @@ def print_menu():
     return userInput
 
 def checkUsernameExists(usernameToCheck):
-    os.chdir(r"C:\Users\nkata\Documents\projects\python_login")
-    usernameFile = open("usernames.txt", "r")
     exists = False
-    for fileLine in usernameFile:
-        fileLine = fileLine.strip()
-        if usernameToCheck == fileLine:
+    usernameArray = readFromFile("usernames.txt")
+    for lineRead in usernameArray:
+        lineRead = lineRead.strip()
+        if lineRead == usernameToCheck:
             exists = True
     return exists
 
 def checkPassword(passwordEntered):
     valid = False
-    os.chdir(r"C:\Users\nkata\Documents\projects\python_login")
-    passwordFile = open("passwords.txt", "r")
-    for fileLine in passwordFile:
-        fileLine = fileLine.strip()
-        if fileLine == passwordEntered:
+    passwordArray = readFromFile("passwords.txt")
+    for lineRead in passwordArray:
+        lineRead = lineRead.strip()
+        lineRead = decrypt_message(eval(lineRead))
+        lineRead = lineRead.decode()
+        if lineRead == passwordEntered:
             valid = True
-    passwordFile.close()
+
     return valid
 
 def createLogin():
@@ -67,14 +118,10 @@ def createLogin():
             passwordValid = True
         else:
             print("ERROR! Passwords did not match, please re-enter.")
-    os.chdir(r"C:\Users\nkata\Documents\projects\python_login")
-    usernameFile = open("usernames.txt", "a")
-    usernameFile.write(usernameEntered + "\n")
-    usernameFile.close
+    writeToFile("usernames.txt", usernameEntered)
     usernameAndPassword = usernameEntered + passwordEntered
-    passwordFile = open("passwords.txt", "a")
-    passwordFile.write(usernameAndPassword + "\n")
-    passwordFile.close
+    usernameAndPassword = encrypt_message(usernameAndPassword)
+    writeToFile("passwords.txt", usernameAndPassword)
 
 def login():
     usernameValid = False
